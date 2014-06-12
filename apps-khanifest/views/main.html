@@ -48,12 +48,12 @@
 % end
 <div class="row">
     <form action="/sign" method="post" role="form">
-      <div class="form-group col-xs-8">
+      <div class="form-group col-xs-4">
 	  <label for="content">Текст заявки</label>
 	  <textarea class="form-control input-lg" name="content" id="content" placeholder="На сцену выходят слоны и танцуют. В лучах черного света со штанкета на сцену падает Харухи Судзумия. Играет Blumenkranz. Бурные аплодисменты." id="content" rows="8"></textarea>
 	  </div>
-	  <div class="clearfix visible-xs"></div>
-	  <div class="form-group col-xs-4">
+      
+	  <div class="form-group col-xs-3">
 	  <label for="author_fn">ФИО автора заявки</label>
 	  <input class="form-control" type="text" placeholder="Владимир Владимироваич Гендо" name="author_fn" id="author_fn">
 	  <label for="author_bdate">Дата рождения автора</label>
@@ -70,7 +70,29 @@
 	  <option>Дефиле</option>
 	  <option>Другое</option>
 	  </select>
-	  </div> 
+      </div>
+      <div class="form-group col-xs-5" id="participants">
+      <div class="form-group col-xs-12">
+      <label class="control-label col-xs-4">Участники:</label>
+      <div class="col-xs-8">
+      <p class="form-control-static">ФИО, ник, возраст</p>
+      </div>
+      </div>
+      <div class="form-group col-xs-12">
+      <div class="form-group col-xs-5" id="participants1">
+      <label for="participant_fn1">ФИО</label>
+      <input class="form-control" type="text" placeholder="Петя Васечкин" name="participant_fn1" id="participant_fn1" >
+      </div>
+      <div class="form-group col-xs-4" id="participants2">
+      <label for="participant_nickname1">Псевдоним</label>
+      <input class="form-control" type="text" placeholder="Шынжы" name="participant_nikcname1" id="participant_nickname1" >
+      </div>
+      <div class="form-group col-xs-3" id="participants2">
+      <label for="participant_age1">Возраст</label>
+      <input class="form-control" type="text" placeholder="9000" name="participant_age1" id="participant_age1" >
+      </div>
+      </div>
+	   
     
 	<div class="clearfix visible-xs"></div>
 	<button type="submit" class="btn btn-primary btn-lg">Послать!</button>

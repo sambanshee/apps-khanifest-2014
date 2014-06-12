@@ -9,16 +9,22 @@ app = Bottle()
 
 database_key = ndb.Key('Application', 'submitted_apps')
 
+class Participant(ndb.Model):
+    participant_fn = ndb.StringProperty(required=True)
+    participand_nickname = ndb.StringProperty(required=True)
+    participant_age = ndb.IntegerProperty(required=True)
+
 class Application(ndb.Model):
     author = ndb.UserProperty(required=True)
     author_fn = ndb.StringProperty(required=True)
     author_phone = ndb.StringProperty(required=True)
     author_bdate = ndb.DateProperty(required=True)
     author_mail = ndb.StringProperty(required=True)
+    author_contacts = ndb.StringProperty(required=True)
     content = ndb.TextProperty(indexed=False)
+    participants = ndb.StructuredProperty(Participant, repeated=True)
     date = ndb.DateTimeProperty(auto_now_add=True)
     app_type = ndb.StringProperty(required=True, choices=set([u"Сценка", u"Групповое дефиле", u"Караоке", u"Дефиле", u"Другое" ]))
-
 
 @app.route('/')
 def main_page():
@@ -47,6 +53,7 @@ def write_form():
     application.author_mail = request.forms.get('author_mail')
     application.app_type = request.forms.get('app_type').decode('utf-8')
     application.author = users.get_current_user()
+    
     
     if not application.author:
         redirect(users.create_login_url(request.url))
