@@ -11,7 +11,7 @@ database_key = ndb.Key('Application', 'submitted_apps')
 
 class Participant(ndb.Model):
     participant_fn = ndb.StringProperty(required=True)
-    participand_nickname = ndb.StringProperty(required=True)
+    participant_nickname = ndb.StringProperty(required=True)
     participant_age = ndb.IntegerProperty(required=True)
 
 class Application(ndb.Model):
@@ -20,7 +20,7 @@ class Application(ndb.Model):
     author_phone = ndb.StringProperty(required=True)
     author_bdate = ndb.DateProperty(required=True)
     author_mail = ndb.StringProperty(required=True)
-    author_contacts = ndb.StringProperty(required=True)
+    author_contacts = ndb.StringProperty(required=False)
     content = ndb.TextProperty(indexed=False)
     participants = ndb.StructuredProperty(Participant, repeated=True)
     date = ndb.DateTimeProperty(auto_now_add=True)
@@ -43,7 +43,6 @@ def main_page():
 
 @app.route('/sign', method='POST')
 def write_form():
-    
 		
     application = Application(parent=database_key)
     application.content = request.forms.get('content')
@@ -51,20 +50,38 @@ def write_form():
     application.author_phone = request.forms.get('author_phone')
     application.author_bdate = datetime.strptime(request.forms.get('author_bdate'), '%d-%m-%Y')
     application.author_mail = request.forms.get('author_mail')
+    application.author_contacts = request.forms.get('author_contacts')
     application.app_type = request.forms.get('app_type').decode('utf-8')
     application.author = users.get_current_user()
     
+    participants_list = []
+    
+    for i in range(10):
+      fullname = request.forms.get("participant_fn_%d" % i)
+      nickname = request.forms.get("participant_nickname_%d" % i)
+      age = request.forms.get("participant_age_%d" % i)
+      #participants_list.append([fullname, nickname, age, "participant_fn_%d" % i])
+      if fullname and nickname and age:
+        try:
+          participants_list.append(Participant(participant_fn=fullname, 
+                                               participant_nickname=nickname,
+                                               participant_age=int(age) )
+                                   )
+        except:
+          redirect("/error")
+    #print participants_list
+    application.participants = participants_list 
     
     if not application.author:
         redirect(users.create_login_url(request.url))
-	
-
+        
     application.put()
+    #return "%s" % participants_list  
+    redirect("/")
 
-	
-	
-    redirect(request.url)
-
+@app.route('/error')
+def error_page():  
+  return "Error!"
 
 @app.error(403)
 def Error403(code):
