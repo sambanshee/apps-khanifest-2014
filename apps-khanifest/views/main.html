@@ -1,35 +1,8 @@
-<!DOCTYPE html>
-
-<html>
-    <head>
-        <title>Система Заявок</title>
-
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <!-- Bootstrap -->
-    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
-    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
-    <!--[if lt IE 9]>
-      <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
-      <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
-    <![endif]-->
+% from google.appengine.api import users
+% from datetime import date
+% include('header.html')
 
 
-<!-- Latest compiled and minified CSS -->
-<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" />
-
-<!-- Optional theme -->
-<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css" />
-
-<!-- Latest compiled and minified JavaScript -->
-<script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
-
-<link id="bsdp-css" href="http://eternicode.github.io/bootstrap-datepicker/bootstrap-datepicker/css/datepicker3.css" rel="stylesheet"> 
-
-    </head>
-
-<body>
 <div class="container-fluid">
 <div class="row">
 <div ><p class="lead">Последние 10 заявок:</p></div>
@@ -47,6 +20,7 @@
 		% end
 			</ol>
 		</td>
+     <td><a href="/edit/{{message.key.urlsafe()}}">Редактировать заявку</a> </td>
 </tr>    
 
   % end
@@ -64,7 +38,7 @@
 	  <label for="author_fn">ФИО автора заявки</label>
 	  <input class="form-control" type="text" placeholder="Владимир Владимироваич Гендо" name="author_fn" id="author_fn">
 	  <label for="author_bdate">Дата рождения автора</label>
-	  <input class="form-control datepicker" data-provide="datepicker" type="date" name="author_bdate" id="author_bdate">  
+	  <input class="form-control datepicker" data-provider="datepicker" type="date" name="author_bdate" id="author_bdate">  
 	  <label for="author_mail">Адрес электронной почты</label>
 	  <input class="form-control" type="email" placeholder="steve.jobs@heaven.com" name="author_mail" id="author_mail">
 	  <label for="author_phone">Телефон</label>
@@ -110,21 +84,4 @@
 </div>
 </div>
 
-<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
-<script src="http://eternicode.github.io/bootstrap-datepicker/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
-<script src="http://eternicode.github.io/bootstrap-datepicker/bootstrap-datepicker/js/locales/bootstrap-datepicker.ua.js" charset="UTF-8"></script>
-<script src="http://eternicode.github.io/bootstrap-datepicker/bootstrap-datepicker/js/locales/bootstrap-datepicker.ru.js" charset="UTF-8"></script>
-
-<script type="text/javascript">
-	            $(document).ready(function () {
-                $('#author_bdate').datepicker({
-                    format: "dd-mm-yyyy",
-					startView: 'decade',
-					language: 'ru'
-                });  
-            });
-</script>
-
-</body>
-
-</html>
+% include('footer.html')

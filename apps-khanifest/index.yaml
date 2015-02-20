@@ -11,6 +11,12 @@ indexes:
 # your application using appcfg.py.
 
 - kind: Application
+  properties:
+  - name: author
+  - name: date
+    direction: desc
+
+- kind: Application
   ancestor: yes
   properties:
   - name: date
@@ -20,4 +26,15 @@ indexes:
   ancestor: yes
   properties:
   - name: date
+    direction: desc
+
+- kind: Comments
+  properties:
+  - name: application
+  - name: comment_date
+
+- kind: Comments
+  properties:
+  - name: application
+  - name: comment_date
     direction: desc
