@@ -1,11 +1,17 @@
 % from google.appengine.api import users
+% from google.appengine.ext.blobstore import BlobInfo, BlobKey
+% from google.appengine.api import images
 % from datetime import date
+% import base64
 % include('header.html')
 % setdefault('comments', '')
 % setdefault('action', 'add')
 % setdefault('app_types', [])
 % setdefault('app', {})
 % setdefault('url_id', '')
+% setdefault('upload_url', '/add')
+% setdefault('image_types', ['image/gif', 'image/jpeg', 'image/png', ])
+% setdefault('test_blob', None)
 
 
 % if action == "edit":
@@ -23,7 +29,7 @@
 
 <div class="row col-md-offset-1 col-lg-offset-1 col-md-10 col-lg-10">
     
-    <form action="/{{upload_url}}" method="post" role="form" enctype="multipart/form-data">
+    <form action="{{upload_url}}" method="post" role="form" enctype="multipart/form-data" accept-charset="utf-8">
       
       <div class="form-group col-md-4">
       <label for="app_title">Название заявки</label>
@@ -35,11 +41,11 @@
       <label for="app_type">Тип заявки</label>
 	  <select class="form-control" name="app_type" id="app_type">
       % for app_type in app_types:
-	  <option 
+	  <option value="{{app_type}}"
       % if action == 'edit':
       {{ "selected" if app_type == app.app_type else ""}}
       % end
-      >{{app_type}}</option>
+      >{{app_types[app_type]}}</option>
 	  
       % end
 	  </select>      
@@ -114,36 +120,108 @@
       % end
       </div>
       
-          
-      <div class="form-group col-md-2 col-lg-2 pull-right" id="uploads">
-        <label for="upload">Файл</label>
+      % if action=="edit":
+      <div class="pull-left form-group form-group-lg col-md-2 col-lg-2" id="uploads">
+        <label for="upload">Загрузить файл</label>
         <input class="file" type="file" name="upload" id="upload" />
       </div>
       
+      <div class="pull-left form-group col-md-4 col-lg-4" id="rehersals">
+        <label for="rehersal">Видео репетиций (YouTube)</label>
+        <input class="form-control input-sm" type="text" name="rehersal" id="rehersal" placeholder="https://www.youtube.com/watch?v=dQw4w9WgXcQ" />
+      </div>
+      % end
       <div class="form-group col-md-12 col-lg-12" id="comments">
 	  <label for="comment">Комментарий</label>
 	  <textarea class="form-control input-lg" name="comment" id="comment" placeholder="Хотелось бы добавить, что слоны розовые." id="comment" rows="3"></textarea>
       </div>
-      <hr/>
+      
+      % if action=="edit":
+        <input type="hidden" name="url_id" value="{{url_id}}" id="{{url_id}}">
+      % end
+      
       <div class="col-md-offset-11 form-group col-md-1 col-lg-1" id="submits">
-      <button type="submit" class="btn btn-primary btn-lg" id="submit">Послать!</button>
+      <button type="submit" class="btn btn-primary btn-lg" id="submit" name="submit">Послать!</button>
       </div>
       
       
       
       
-      % if url_id:
-        <input type="hidden" name="url_id" value="{{url_id}}">
-      % end
+      
     
     </form>
 	</div>
 </div>
 
 
+<div>
+
+% if action == "edit":
+% blob_images = []
+% blob_files = []
+
+% for blob_key in app.test_blob:
+% blob = BlobInfo.get(blob_key)
+
+% if blob.content_type in image_types:
+%   blob_images.append(blob)
+% else:
+%   blob_files.append(blob)
+% end
+
+% end
+
+<div class="container-fluid col-md-offset-1 col-md-10 col-lg-10">
+<div class="panel panel-default">
+<div class="panel-heading"><i class="fa fa-file-image-o"></i> Фотографии:</div>
+<div class="panel-body">
+
+% for blob in blob_images:
+<a href="{{images.get_serving_url(blob.key(), size=1600, crop=False)}}" target="_blank"><img src="{{images.get_serving_url(blob.key())}}=s250-c" class="img-rounded"/></a>
+% end
+</div>
+</div>
+</div>
+
+<div class="container-fluid col-md-offset-1 col-md-10 col-lg-10">
+<div class="panel panel-default">
+<div class="panel-heading"><i class="fa fa-file"></i> Прочие файлы:</div>
+<div class="panel-body">
+<ul class="list-inline">
+% for blob in blob_files:
+<li><a href = "/download/{{blob.key()}}">{{blob.filename}}</a></li>
+% end
+</ul>
+</div>
+</div>
+</div>
+
+
     
+</div>
+
+%if app.rehersals:
+<div class="container-fluid col-md-offset-1 col-md-10 col-lg-10">
+<h3>Репетиции</h3>
+
+<div class="panel panel-info">
+<div class="panel-body">
+%for rehersal in app.rehersals:
+
+<iframe class="embed-responsive-item" width="320" height="240" src="https://www.youtube.com/embed/{{rehersal}}" frameborder="0"></iframe>
+
+
+%end
+</div>
+</div>
+</div>
+%end
+
+%end
+
 %if comments:
 <div class="container-fluid col-md-offset-1 col-md-10 col-lg-10">
+<h3>Комментарии</h3>
 %for comment in comments:
 <div class="panel panel-info">
 <div class="panel-heading">{{comment.author}}</div>

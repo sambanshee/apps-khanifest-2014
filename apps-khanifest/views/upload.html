@@ -1,0 +1,36 @@
+% from google.appengine.api import users
+% from datetime import date
+% include('header.html')
+% setdefault('comments', '')
+% setdefault('action', 'add')
+% setdefault('app_types', [])
+% setdefault('app', {})
+% setdefault('url_id', '')
+
+
+
+   <div class="container">
+    <form action="{{upload_url}}" method="post" role="form" enctype="multipart/form-data">
+      
+      <div class="form-group col-md-2 col-lg-2 pull-right" id="uploads">
+        <label for="upload">Файл</label>
+        <input class="file" type="file" name="upload" id="upload" />
+      </div>
+      
+      <div class="col-md-offset-11 form-group col-md-1 col-lg-1" id="submits">
+      <button type="submit" class="btn btn-primary btn-lg" id="submit" name="submit" value="submit">Послать!</button>
+      </div>
+           
+    
+    
+    </form>
+</div>
+
+    
+   
+	
+
+
+
+
+% include('footer.html')

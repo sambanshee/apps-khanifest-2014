@@ -13,19 +13,7 @@ indexes:
 - kind: Application
   properties:
   - name: author
-  - name: date
-    direction: desc
-
-- kind: Application
-  properties:
-  - name: author
   - name: number
-
-- kind: Application
-  properties:
-  - name: author
-  - name: number
-    direction: desc
 
 - kind: Comments
   properties:

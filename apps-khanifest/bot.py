@@ -1,17 +1,30 @@
 # -*- coding: utf-8 -*-
 import bottle
+import base64
 import datetime
+import webob
 from bottle import *
 from google.appengine.api import users
 from google.appengine.ext import ndb
 from google.appengine.ext import blobstore
+from multipart import parse_options_header
+from google.appengine.ext.blobstore import BlobInfo, BlobKey
+import re
+
+def decode_field(field):
+    try:
+        return base64.b64decode(str(field).decode('utf-8'))
+    except:
+        #return field.decode('utf-8')
+        return field
+
 
   
 app = Bottle()
 
 database_key = ndb.Key('Application', 'submitted_apps')
 comments_key = ndb.Key('Comments', 'comments')
-app_types = [u"Сценка", u"Групповое дефиле", u"Караоке", u"Дефиле", u"Другое" ]
+app_types = {"play":"Сценка", "group":"Групповое дефиле", "karaoke":"Караоке", "defile":"Дефиле", "other":"Другое" }
 counter_id = 1
 statuses={"sent":"Отправлена", "hold": "Ожидает ответа", "wait": "В рассмотрении", "deny": "Отклонена", "accept": "Принята"}
 
@@ -39,13 +52,14 @@ class Application(ndb.Model):
     content = ndb.TextProperty(indexed=False)
     participants = ndb.StructuredProperty(Participant, repeated=True)
     date = ndb.DateTimeProperty(auto_now_add=True)
-    app_type = ndb.StringProperty(required=True, choices=set(app_types))
+    app_type = ndb.StringProperty(required=True)
     app_title = ndb.StringProperty(required=False)
     app_origin = ndb.StringProperty(required=True)
     app_status = ndb.StringProperty(required=True)
     city = ndb.StringProperty(required=True)
     number = ndb.IntegerProperty(required=True)  
-    test_blob = ndb.StringProperty(required=False)
+    test_blob = ndb.StringProperty(repeated=True)
+    rehersals = ndb.StringProperty(repeated=True, indexed=False, required=False)
     
     
 @app.route('/')
@@ -75,8 +89,7 @@ def app_add():
     else:
         users.create_logout_url(request.url)
    
-    output = template('app-edit.html', app_types=app_types, action="add", statuses=statuses)
-    response.charset = 'UTF-8'
+    output = template('app-edit.html', app_types=app_types, action="add", statuses=statuses,)
     return output
 
 @ndb.transactional    
@@ -90,7 +103,8 @@ def new_app():
     application.author_bdate = datetime.strptime(request.forms.get('author_bdate'), '%d-%m-%Y')
     application.author_mail = request.forms.get('author_mail')
     application.author_contacts = request.forms.get('author_contacts')
-    application.app_type = request.forms.get('app_type').decode('utf-8')
+    #application.app_type = request.forms.get('app_type').decode('utf-8')
+    application.app_type = request.forms.get('app_type')
     application.app_title = request.forms.get('app_title')
     application.app_origin = request.forms.get('app_origin')
     application.city = request.forms.get('city')
@@ -131,7 +145,7 @@ def new_app():
     
     counter.put()    
     application.put()
-    response.charset = 'UTF-8'
+
     #return "%s" % participants_list  
     redirect("/")
 
@@ -158,51 +172,71 @@ def edit_post(url_id):
     
     output = template('app-edit.html', app = application[0], action="edit", comments=comments, url_id=url_id, upload_url=upload_url, app_types=app_types, statuses=statuses )
     
-
+    response.headers['Content-Type'] = 'text/html; charset=utf-8'
     return output
     #return "success"
     
     
-#not going to work, just adding stuff
+'''
+upload parsed thanks to http://stackoverflow.com/questions/13021255/using-bottle-py-and-blobstore-gae
+'''
+
 @app.route('/edit', method='POST')
 def edit_post():
     user = users.get_current_user()
     if not user:
         redirect(users.create_login_url(request.url))
     
-        
-    
-    
-    
+    response.headers['Content-Type'] = 'text/html; charset=utf-8'
     
     url_id = request.forms.get('url_id')
+    
     #return url_id
     application = ndb.Key(urlsafe=url_id).get()
+    
 
     if application.author != user and not users.is_current_user_admin() :
         redirect('/')  
    
-    application.content = request.forms.get('content')
-    application.author_fn = request.forms.get('author_fn')
-    application.author_phone = request.forms.get('author_phone')  
+    application.content = decode_field(request.forms.get('content'))
+    application.author_fn = decode_field(request.forms.get('author_fn'))
+    application.author_phone = request.forms.get('author_phone')
     #application.author_bdate = datetime.strptime(request.forms.get('author_bdate'), '%d-%m-%Y')
     #application.author_mail = request.forms.get('author_mail')
-    #application.author_contacts = request.forms.get('author_contacts')
+    application.author_contacts = decode_field(request.forms.get('author_contacts'))
     application.app_type = request.forms.get('app_type').decode('utf-8')
-    application.app_title = request.forms.get('app_title')
-    application.app_origin = request.forms.get('app_origin')
-    #application.city = request.forms.get('city')
+    application.app_title = decode_field(request.forms.get('app_title'))
+    application.app_origin = decode_field(request.forms.get('app_origin'))
+    application.city = decode_field(request.forms.get('city'))
     #application.app_status = "sent"
+    #return application.app_title
     
-    upload = request.files.get('upload')
-    #blob_info = upload
-    #file_headers =[]
-    #for i in header:
-    #    file_headers.append(i)
-    #return file_headers
-    #application.test_blob = header
+    try:
+        upload = request.files["upload"]
+        blob_data = parse_options_header(upload.content_type)[1]
+        blob_key =  blob_data["blob-key"]
+        if application.test_blob:
+            application.test_blob.append(blob_key)
+        else:
+            application.test_blob = [blob_key]
+    except:
+        pass
+    try:
+        rehersal = decode_field(request.forms.get('rehersal'))
+    except:
+        rehersal = None
     
+    if rehersal:
+        match = re.search(r"(?:youtube\.com\/\S*(?:(?:\/e(?:mbed))?\/|watch\?(?:\S*?&?v\=))|youtu\.be\/)([a-zA-Z0-9_-]{6,11})", rehersal)
+        if match:
+            rehersal = match.group(1)
+   
     
+    if application.rehersals and rehersal:
+        application.rehersals.append(rehersal)
+    elif rehersal and not application.rehersals:
+        application.rehersals = [rehersal]
+       
     
     participants_list = []
     
@@ -210,6 +244,8 @@ def edit_post():
       fullname = request.forms.get("participant_fn_%d" % i)
       nickname = request.forms.get("participant_nickname_%d" % i)
       age = request.forms.get("participant_age_%d" % i)
+      fullname = decode_field(fullname)
+      nicname = decode_field(nickname)
       delete = request.forms.get("participant_delete_%d" % i)
       #participants_list.append([fullname, nickname, age, "participant_fn_%d" % i])
       if fullname and nickname and age and not delete:
@@ -226,7 +262,7 @@ def edit_post():
     comment = Comments(parent=comments_key)
     comment_body = request.forms.get('comment')
     if comment_body:
-        comment.comment = request.forms.get('comment')
+        comment.comment = decode_field(comment_body)
         comment.author = user
         comment.application = url_id
         comment.put()       
@@ -234,11 +270,19 @@ def edit_post():
     
     
 
-    return "success"
+    #return "success"
     #return application
-    #redirect('/')  
+    redirect('/')  
 
-
+# http://java.dzone.com/articles/upload-and-download-file-mongo
+@app.route('/download/<blob_key>')
+def download_file(blob_key):
+    blob = BlobInfo.get(blob_key)      
+    response.headers['X-AppEngine-BlobKey'] = blob_key.decode('utf-8')
+    response.headers['Content-Disposition'] = "attachment; filename=%s" % blob.filename
+    response.headers['Content-Type'] = blob.content_type
+    return response
+    
 @app.route('/error')
 def error_page():  
   return "Error!"
@@ -251,4 +295,4 @@ def Error403(code):
 def Error404(code):
     return 'Stop cowboy, what are you trying to find?'
 
-run(app=app, server='gae', debug=True)
+run(app=app, server='gae', debug=True) 

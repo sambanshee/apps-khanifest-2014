@@ -1,6 +1,7 @@
 % from google.appengine.api import users
 % from datetime import date
 % include('header.html')
+% setdefault('app_types', [])
 
 
 <div class="container-fluid">
@@ -26,7 +27,7 @@
   % end
   >
     <td>{{app.number}}</td>
-    <td>{{app.app_type}}</td>
+    <td>{{app_types[app.app_type]}}</td>
     <td>{{app.app_origin}}</td>
     <td>{{app.app_title}}</td>
     <td>{{app.date}}</td>
