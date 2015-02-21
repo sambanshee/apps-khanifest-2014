@@ -17,24 +17,17 @@ indexes:
     direction: desc
 
 - kind: Application
-  ancestor: yes
   properties:
-  - name: date
-    direction: desc
+  - name: author
+  - name: number
 
-- kind: Applications
-  ancestor: yes
+- kind: Application
   properties:
-  - name: date
+  - name: author
+  - name: number
     direction: desc
 
 - kind: Comments
   properties:
   - name: application
   - name: comment_date
-
-- kind: Comments
-  properties:
-  - name: application
-  - name: comment_date
-    direction: desc

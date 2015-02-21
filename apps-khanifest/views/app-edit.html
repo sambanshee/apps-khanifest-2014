@@ -1,85 +1,131 @@
 % from google.appengine.api import users
 % from datetime import date
 % include('header.html')
+% setdefault('comments', '')
 % setdefault('action', 'add')
+% setdefault('app_types', [])
+% setdefault('app', {})
+% setdefault('url_id', '')
 
-<div class="row  col-md-offset-1 col-lg-offset-1 col-md-10 col-lg-10">
-    <form action="/{{action}}" method="post" role="form">
+
+% if action == "edit":
+    <div class="container-fluid">
+    
+        <h2 class="text-center">Заявка №: {{app.number}} <br/><i class="fa fa-info-circle"></i><small> запомните номер заявки, это важно!</small></h2>
+        
+    </div>
+% end
+
+
+
+<div class="container-fluid">
+
+
+<div class="row col-md-offset-1 col-lg-offset-1 col-md-10 col-lg-10">
+    
+    <form action="/{{upload_url}}" method="post" role="form" enctype="multipart/form-data">
       
-      <div class="form-group col-xs-4">
+      <div class="form-group col-md-4">
+      <label for="app_title">Название заявки</label>
+	  <input class="form-control"  type="text" placeholder="Посторонним В" name="app_title" id="app_title" value="{{app.app_title if action == "edit" else ''}}">
 	  <label for="content">Текст заявки</label>
-	  <textarea class="form-control input-lg" name="content" id="content" placeholder="На сцену выходят слоны и танцуют. В лучах черного света со штанкета на сцену падает Харухи Судзумия. Играет Blumenkranz. Бурные аплодисменты." id="content" rows="8">{{app.content}}</textarea>
-	  </div>
+	  <textarea class="form-control" name="content" id="content" placeholder="На сцену выходят слоны и танцуют. В лучах черного света со штанкета на сцену падает Харухи Судзумия. Играет Blumenkranz. Бурные аплодисменты." id="content" rows="14">{{app.content if action=="edit" else ''}}</textarea>
+      <label for="app_origin">Источник (аниме, игра и т.д.)</label>
+      <input class="form-control"  type="text" placeholder="Звездные Войны 7" name="app_origin" id="app_origin" value="{{app.app_origin if action == "edit" else ''}}">
+      <label for="app_type">Тип заявки</label>
+	  <select class="form-control" name="app_type" id="app_type">
+      % for app_type in app_types:
+	  <option 
+      % if action == 'edit':
+      {{ "selected" if app_type == app.app_type else ""}}
+      % end
+      >{{app_type}}</option>
+	  
+      % end
+	  </select>      
+	  </div>    
       
-	  <div class="form-group col-xs-2">
+	  <div class="form-group col-md-2">
 	  <label for="author_fn">ФИО автора заявки</label>
-	  <input class="form-control" type="text" placeholder="Владимир Владимироваич Гендо" name="author_fn" id="author_fn" value="{{app.author_fn}}">   
+	  <input class="form-control input-sm" type="text" placeholder="Владимир Владимироваич Гендо" name="author_fn" id="author_fn" value="{{app.author_fn if action=="edit" else ''}}">   
+      % if action == "add":
+      <label for="author_bdate">Дата рождения автора</label>
+	  <input class="form-control datepicker" data-provider="datepicker" type="date" name="author_bdate" id="author_bdate">  
+      % end
 	  <label for="author_phone">Телефон</label>
-      <input class="form-control"  type="tel" placeholder="+380 322 223 322 322" name="author_phone" id="author_phone" value="{{app.author_phone}}">
+      <input class="form-control input-sm"  type="tel" placeholder="+380 322 223 322 322" name="author_phone" id="author_phone" value="{{app.author_phone if action=="edit" else ''}}">      
+	  <label for="author_mail">Адрес электронной почты</label>
+	  <input class="form-control" type="email" placeholder="steve.jobs@heaven.com" name="author_mail" id="author_mail" value="{{app.author_mail if action=="edit" else ''}}">
+	  <label for="author_contacts">Прочие контакты</label>
+	  <input class="form-control"  type="text" placeholder="Skype: nya_nya_nya, ВК: выхухоль" name="author_contacts" id="author_contacts" value="{{app.author_contacts if action=="edit" else ''}}">
+      <label for="city">Город</label>
+	  <input class="form-control" type="text" placeholder="Жмеринка, Ахтырка" name="city" id="city" value="{{app.city if action=="edit" else ''}}">
 
-	  <!-- <label for="app_type">Тип заявки</label>
-	  <select class="form-control" name="app_type" id="app_type" >
-	  <option>Сценка</option>
-	  <option>Групповое дефиле</option>
-	  <option>Караоке</option>
-	  <option>Дефиле</option>
-	  <option>Другое</option>
-	  </select> -->
       
       </div>
-      <div class="form-group col-xs-6" id="participants">
-      <div class="form-group col-xs-12">
-      <label class="control-label col-xs-4">Участники:</label>
+      <div class="form-group col-md-6" id="participants">
+      <div class="form-group col-md-12">
+      <label class="control-label col-md-12">Участники<br/><small><i class="fa fa-info-circle"> </i> дополнительных участников можно добавить, отредактировав заявку</label>
       </div>
       
       
       
-      % participant_id = 0      
+      % participant_id = 0
+      % if action=="edit":
       % for participant in app.participants:
-      <div class="col-xs-12" id="participants_names_{{participant_id}}" >
-      <div class="form-group col-xs-4" id="participants_fn_{{participant_id}}">
+      <div class="col-md-12  col-xs-12" id="participants_names_{{participant_id}}" >
+      <div class="form-group col-xs-10 col-md-4" id="participants_fn_{{participant_id}}">
       <label for="participant_fn_{{participant_id}}"><small>ФИО</small></label>
-      <input class="form-control input-sm" type="text" placeholder="Петя Васечкин" name="participant_fn_{{participant_id}}" id="participant_fn_{{participant_id}}" 
-      value="{{participant.participant_fn}}">
+      <input class="form-control input-sm" type="text" placeholder="Петя Васечкин" name="participant_fn_{{participant_id}}" id="participant_fn_{{participant_id}}" value="{{participant.participant_fn}}" />
       </div>
-      <div class="col-xs-4" id="participants_nickname_{{participant_id}}">
+      <div class="col-md-4 col-xs-10 " id="participants_nickname_{{participant_id}}">
       <label for="participant_nickname_{{participant_id}}"><small>Псевдоним</small></label>
-      <input class="form-control input-sm" type="text" placeholder="Шынжы" name="participant_nickname_{{participant_id}}" id="participant_nickname_{{participant_id}}" value="{{participant.participant_nickname}}" >
+      <input class="form-control input-sm" type="text" placeholder="Шынжы" name="participant_nickname_{{participant_id}}" id="participant_nickname_{{participant_id}}" value="{{participant.participant_nickname}}" />
       </div>
-      <div class="col-xs-2" id="participants_age_{{participant_id}}">
+      <div class="col-md-2 col-xs-10 " id="participants_age_{{participant_id}}">
       <label for="participant_age_{{participant_id}}"><small>Возраст</small></label>
-      <input class="form-control input-sm" type="text" placeholder="9000" name="participant_age_{{participant_id}}" id="participant_age_{{participant_id}}" value="{{participant.participant_age}}">
+      <input class="form-control input-sm" type="text" placeholder="9000" name="participant_age_{{participant_id}}" id="participant_age_{{participant_id}}" value="{{participant.participant_age}}" />
       </div>
-      <div class="col-xs-2" id="participants_delete_{{participant_id}}">
+      <div class="col-md-2 col-xs-2 " id="participants_delete_{{participant_id}}">
       <label for="participant_delete_{{participant_id}}">Удалить?</label>
-      <input class="form-control input-sm" type="checkbox" name="participant_delete_{{participant_id}}" id="participant_delete_{{participant_id}}"> 
+      <input class="form-control input-sm " type="checkbox" name="participant_delete_{{participant_id}}" id="participant_delete_{{participant_id}}" /> 
       </div>
       </div>
       % participant_id += 1
       % end
+      % end
       
-      <div class="col-xs-12" id="participants_names_{{participant_id}}" >
-      <div class="form-group col-xs-5" id="participants_fn_{{participant_id}}">
+      % new_range = participant_id
+      % for participant_id in range(participant_id, participant_id + 5):
+      <div class="col-md-12" id="participants_names_{{participant_id}}" >
+      <div class="form-group col-md-5" id="participants_fn_{{participant_id}}">
       <label for="participant_fn_{{participant_id}}"><small>ФИО</small></label>
       <input class="form-control input-sm" type="text" placeholder="Петя Васечкин" name="participant_fn_{{participant_id}}" id="participant_fn_{{participant_id}}" >
       </div>
-      <div class="col-xs-4" id="participants_nickname_{{participant_id}}">
+      <div class="col-md-4" id="participants_nickname_{{participant_id}}">
       <label for="participant_nickname_{{participant_id}}"><small>Псевдоним</small></label>
       <input class="form-control input-sm" type="text" placeholder="Шынжы" name="participant_nickname_{{participant_id}}" id="participant_nickname_{{participant_id}}" >
       </div>
-      <div class="col-xs-3" id="participants_age_{{participant_id}}">
+      <div class="col-md-3" id="participants_age_{{participant_id}}">
       <label for="participant_age_{{participant_id}}"><small>Возраст</small></label>
       <input class="form-control input-sm" type="text" placeholder="9000" name="participant_age_{{participant_id}}" id="participant_age_{{participant_id}}" >
       </div>
       </div>
+      % end
       </div>
       
-      <div class="form-group col-xs-10 col-md-10 col-lg-10" id="comments">
+          
+      <div class="form-group col-md-2 col-lg-2 pull-right" id="uploads">
+        <label for="upload">Файл</label>
+        <input class="file" type="file" name="upload" id="upload" />
+      </div>
+      
+      <div class="form-group col-md-12 col-lg-12" id="comments">
 	  <label for="comment">Комментарий</label>
 	  <textarea class="form-control input-lg" name="comment" id="comment" placeholder="Хотелось бы добавить, что слоны розовые." id="comment" rows="3"></textarea>
       </div>
       <hr/>
-      <div class="col-md-offset-11 form-group col-xs-1 col-md-1 col-lg-1" id="submits">
+      <div class="col-md-offset-11 form-group col-md-1 col-lg-1" id="submits">
       <button type="submit" class="btn btn-primary btn-lg" id="submit">Послать!</button>
       </div>
       
@@ -92,11 +138,12 @@
     
     </form>
 	</div>
-	
+</div>
+
 
     
 %if comments:
-<div class="container col-md-offset-1 col-xs-10 col-md-10 col-lg-10">
+<div class="container-fluid col-md-offset-1 col-md-10 col-lg-10">
 %for comment in comments:
 <div class="panel panel-info">
 <div class="panel-heading">{{comment.author}}</div>

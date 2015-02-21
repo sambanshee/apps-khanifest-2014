@@ -4,83 +4,41 @@
 
 
 <div class="container-fluid">
+<div class="col-md-2 pull-right">
+<h1>Инфа об авторе</h1>
+<a class="btn btn-primary btn-lg" href="/add" role="button">Подать заявку!</a>
+</div>
+<div class="col-md-10">
 <div class="row">
 <div ><p class="lead">Последние 10 заявок:</p></div>
 </div>
-% if content:
+% if apps:
 <table class="table table-hover">
-
-  % for message in content:
   <tr>
-	<td>{{message.author.nickname()}}</td><td>{{message.author_fn}}</td><td>{{message.author_bdate}}</td><td>{{message.author_mail}}</td><td>{{message.author_phone}}{{message.content}}</td><td>{{message.date}}</td>
-		<td>
-			<ol>
-		% for participants in message.participants:
-			<li>{{participants.participant_fn}},{{participants.participant_nickname}},{{participants.participant_age}}</li>  
-		% end
-			</ol>
-		</td>
-     <td><a href="/edit/{{message.key.urlsafe()}}">Редактировать заявку</a> </td>
+  <th>Номер</th><th>Тип</th><th>Источник</th><th>Название</th><th>Дата отправки</th><th>Статус</th><th></th>
+  </tr>
+  % for app in apps:
+  <tr 
+  % if app.app_status in ["wait",]:
+    class="info"
+  % elif app.app_status in ["deny",]:
+    class="danger"
+  % end
+  >
+    <td>{{app.number}}</td>
+    <td>{{app.app_type}}</td>
+    <td>{{app.app_origin}}</td>
+    <td>{{app.app_title}}</td>
+    <td>{{app.date}}</td>
+    <td>{{ statuses[app.app_status] }}</td>
+	<td><a href="/edit/{{app.key.urlsafe()}}">Редактировать заявку</a> </td>
 </tr>    
 
   % end
 
 </table>
 % end
-<div class="row">
-    <form action="/sign" method="post" role="form">
-      <div class="form-group col-xs-4">
-	  <label for="content">Текст заявки</label>
-	  <textarea class="form-control input-lg" name="content" id="content" placeholder="На сцену выходят слоны и танцуют. В лучах черного света со штанкета на сцену падает Харухи Судзумия. Играет Blumenkranz. Бурные аплодисменты." id="content" rows="8"></textarea>
-	  </div>
-      
-	  <div class="form-group col-xs-3">
-	  <label for="author_fn">ФИО автора заявки</label>
-	  <input class="form-control" type="text" placeholder="Владимир Владимироваич Гендо" name="author_fn" id="author_fn">
-	  <label for="author_bdate">Дата рождения автора</label>
-	  <input class="form-control datepicker" data-provider="datepicker" type="date" name="author_bdate" id="author_bdate">  
-	  <label for="author_mail">Адрес электронной почты</label>
-	  <input class="form-control" type="email" placeholder="steve.jobs@heaven.com" name="author_mail" id="author_mail">
-	  <label for="author_phone">Телефон</label>
-	  <input class="form-control"  type="tel" placeholder="+380 322 223 322 322" name="author_phone" id="author_phone">
-	  <label for="author_contacts">Прочие контакты</label>
-	  <input class="form-control"  type="text" placeholder="Skype: nya_nya_nya, ВК: выхухоль" name="author_contacts" id="author_contacts">
-	  <label for="app_type">Тип заявки</label>
-	  <select class="form-control" name="app_type" id="app_type">
-	  <option>Сценка</option>
-	  <option>Групповое дефиле</option>
-	  <option>Караоке</option>
-	  <option>Дефиле</option>
-	  <option>Другое</option>
-	  </select>
-      </div>
-      <div class="form-group col-xs-5" id="participants">
-      <div class="form-group col-xs-12">
-      <label class="control-label col-xs-4">Участники:</label>
-      </div>
-      
-      % participant_id = 0      	
-      % for participant_id in range(10):
-      <div class="col-xs-12" id="participants_names_{{participant_id}}">	
-      <div class="form-group col-xs-5" id="participants_fn_{{participant_id}}">
-      <label for="participant_fn_{{participant_id}}"><small>ФИО</small></label>
-      <input class="form-control input-sm" type="text" placeholder="Петя Васечкин" name="participant_fn_{{participant_id}}" id="participant_fn_{{participant_id}}" >
-      </div>
-      <div class="col-xs-4" id="participants_nickname_{{participant_id}}">
-      <label for="participant_nickname_{{participant_id}}"><small>Псевдоним</small></label>
-      <input class="form-control input-sm" type="text" placeholder="Шынжы" name="participant_nickname_{{participant_id}}" id="participant_nickname_{{participant_id}}" >
-      </div>
-      <div class="col-xs-3" id="participants_age_{{participant_id}}">
-      <label for="participant_age_{{participant_id}}"><small>Возраст</small></label>
-      <input class="form-control input-sm" type="text" placeholder="9000" name="participant_age_{{participant_id}}" id="participant_age_{{participant_id}}" >
-      </div>
-      </div>
-      % end
-     
-	<button type="submit" class="btn btn-primary btn-lg">Послать!</button>
-	</div>
-	</form>
-	
+
 </div>
 </div>
 

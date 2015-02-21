@@ -157,7 +157,7 @@ def update_wrapper(wrapper, wrapped, *a, **ka):
 def depr(message, strict=False):
     warnings.warn(message, DeprecationWarning, stacklevel=3)
 
-def makelist(data): # This is just to handy
+def makelist(data): # This is just too handy
     if isinstance(data, (tuple, list, set, dict)):
         return list(data)
     elif data:
@@ -426,7 +426,7 @@ class Router(object):
             raise RouteBuildError('Missing URL argument: %r' % _e().args[0])
 
     def match(self, environ):
-        """ Return a (target, url_agrs) tuple or raise HTTPError(400/404/405). """
+        """ Return a (target, url_args) tuple or raise HTTPError(400/404/405). """
         verb = environ['REQUEST_METHOD'].upper()
         path = environ['PATH_INFO'] or '/'
 
@@ -479,7 +479,7 @@ class Route(object):
                  plugins=None, skiplist=None, **config):
         #: The application this route is installed to.
         self.app = app
-        #: The path-rule string (e.g. ``/wiki/:page``).
+        #: The path-rule string (e.g. ``/wiki/<page>``).
         self.rule = rule
         #: The HTTP method as a string (e.g. ``GET``).
         self.method = method
@@ -555,7 +555,7 @@ class Route(object):
     def get_config(self, key, default=None):
         """ Lookup a config field and return its value, first checking the
             route.config, then route.app.config."""
-        for conf in (self.config, self.app.conifg):
+        for conf in (self.config, self.app.config):
             if key in conf: return conf[key]
         return default
 
@@ -773,7 +773,7 @@ class Bottle(object):
               apply=None, skip=None, **config):
         """ A decorator to bind a function to a request URL. Example::
 
-                @app.route('/hello/:name')
+                @app.route('/hello/<name>')
                 def hello(name):
                     return 'Hello %s' % name
 
@@ -1186,11 +1186,11 @@ class BaseRequest(object):
             HTTPError(413) on requests that are to large. """
         clen = self.content_length
         if clen > self.MEMFILE_MAX:
-            raise HTTPError(413, 'Request to large')
+            raise HTTPError(413, 'Request entity too large')
         if clen < 0: clen = self.MEMFILE_MAX + 1
         data = self.body.read(clen)
         if len(data) > self.MEMFILE_MAX: # Fail fast
-            raise HTTPError(413, 'Request to large')
+            raise HTTPError(413, 'Request entity too large')
         return data
 
     @property
@@ -1478,7 +1478,7 @@ class BaseResponse(object):
         copy._headers = dict((k, v[:]) for (k, v) in self._headers.items())
         if self._cookies:
             copy._cookies = SimpleCookie()
-            copy._cookies.load(self._cookies.output())
+            copy._cookies.load(self._cookies.output(header=''))
         return copy
 
     def __iter__(self):
@@ -1532,7 +1532,7 @@ class BaseResponse(object):
     def __contains__(self, name): return _hkey(name) in self._headers
     def __delitem__(self, name):  del self._headers[_hkey(name)]
     def __getitem__(self, name):  return self._headers[_hkey(name)][-1]
-    def __setitem__(self, name, value): self._headers[_hkey(name)] = [str(value)]
+    def __setitem__(self, name, value): self._headers[_hkey(name)] = [value if isinstance(value, unicode) else str(value)]
 
     def get_header(self, name, default=None):
         """ Return the value of a previously defined header. If there is no
@@ -1542,11 +1542,11 @@ class BaseResponse(object):
     def set_header(self, name, value):
         """ Create a new response header, replacing any previously defined
             headers with the same name. """
-        self._headers[_hkey(name)] = [str(value)]
+        self._headers[_hkey(name)] = [value if isinstance(value, unicode) else str(value)]
 
     def add_header(self, name, value):
         """ Add an additional response header, not removing duplicates. """
-        self._headers.setdefault(_hkey(name), []).append(str(value))
+        self._headers.setdefault(_hkey(name), []).append(value if isinstance(value, unicode) else str(value))
 
     def iter_headers(self):
         """ Yield (header, value) tuples, skipping headers that are not
@@ -1563,11 +1563,14 @@ class BaseResponse(object):
         if self._status_code in self.bad_headers:
             bad_headers = self.bad_headers[self._status_code]
             headers = [h for h in headers if h[0] not in bad_headers]
-        out += [(name, val) for name, vals in headers for val in vals]
+        out += [(name, val) for (name, vals) in headers for val in vals]
         if self._cookies:
             for c in self._cookies.values():
                 out.append(('Set-Cookie', c.OutputString()))
-        return out
+        if py3k:
+            return [(k, v.encode('utf8').decode('latin1')) for (k, v) in out]
+        else:
+            return [(k, v.encode('utf8') if isinstance(v, unicode) else v) for (k, v) in out]
 
     content_type = HeaderProperty('Content-Type')
     content_length = HeaderProperty('Content-Length', reader=int)
@@ -1938,10 +1941,10 @@ class HeaderDict(MultiDict):
     def __contains__(self, key): return _hkey(key) in self.dict
     def __delitem__(self, key): del self.dict[_hkey(key)]
     def __getitem__(self, key): return self.dict[_hkey(key)][-1]
-    def __setitem__(self, key, value): self.dict[_hkey(key)] = [str(value)]
+    def __setitem__(self, key, value): self.dict[_hkey(key)] = [value if isinstance(value, unicode) else str(value)]
     def append(self, key, value):
-        self.dict.setdefault(_hkey(key), []).append(str(value))
-    def replace(self, key, value): self.dict[_hkey(key)] = [str(value)]
+        self.dict.setdefault(_hkey(key), []).append(value if isinstance(value, unicode) else str(value))
+    def replace(self, key, value): self.dict[_hkey(key)] = [value if isinstance(value, unicode) else str(value)]
     def getall(self, key): return self.dict.get(_hkey(key)) or []
     def get(self, key, default=None, index=-1):
         return MultiDict.get(self, _hkey(key), default, index)
@@ -1980,7 +1983,13 @@ class WSGIHeaderDict(DictMixin):
         return self.environ.get(self._ekey(key), default)
 
     def __getitem__(self, key):
-        return tonat(self.environ[self._ekey(key)], 'latin1')
+        val = self.environ[self._ekey(key)]
+        if py3k:
+            if isinstance(val, unicode):
+                val = val.encode('latin1').decode('utf8')
+            else:
+                val = val.decode('utf8')
+        return val
 
     def __setitem__(self, key, value):
         raise TypeError("%s is read-only." % self.__class__)
@@ -1991,9 +2000,9 @@ class WSGIHeaderDict(DictMixin):
     def __iter__(self):
         for key in self.environ:
             if key[:5] == 'HTTP_':
-                yield key[5:].replace('_', '-').title()
+                yield _hkey(key[5:])
             elif key in self.cgikeys:
-                yield key.replace('_', '-').title()
+                yield _hkey(key)
 
     def keys(self): return [x for x in self]
     def __len__(self): return len(self.keys())
@@ -2061,6 +2070,7 @@ class ConfigDict(dict):
     def setdefault(self, key, value):
         if key not in self:
             self[key] = value
+        return self[key]
 
     def __setitem__(self, key, value):
         if not isinstance(key, str):
@@ -2354,7 +2364,10 @@ def static_file(filename, root, mimetype='auto', download=False, charset='UTF-8'
         return HTTPError(403, "You do not have permission to access this file.")
 
     if mimetype == 'auto':
-        mimetype, encoding = mimetypes.guess_type(filename)
+        if download and download != True:
+            mimetype, encoding = mimetypes.guess_type(download)
+        else:
+            mimetype, encoding = mimetypes.guess_type(filename)
         if encoding: headers['Content-Encoding'] = encoding
 
     if mimetype:
@@ -2640,10 +2653,10 @@ class FlupFCGIServer(ServerAdapter):
 
 
 class WSGIRefServer(ServerAdapter):
-    def __init__(self, *args, **kwargs):
-        super(WSGIRefServer, self).__init__(*args, **kwargs)
-        from wsgiref.simple_server import WSGIRequestHandler, WSGIServer
+
+    def run(self, app): # pragma: no cover
         from wsgiref.simple_server import make_server
+        from wsgiref.simple_server import WSGIRequestHandler, WSGIServer
         import socket
 
         class FixedHandler(WSGIRequestHandler):
@@ -2663,9 +2676,11 @@ class WSGIRefServer(ServerAdapter):
 
         self.srv = make_server(self.host, self.port, app, server_cls, handler_cls)
         self.port = self.srv.server_port # update port actual port (0 means random)
-    
-    def run(self, app): # pragma: no cover
-        self.srv.serve_forever()
+        try:
+            self.srv.serve_forever()
+        except KeyboardInterrupt:
+            self.srv.server_close() # Prevent ResourceWarning: unclosed socket
+            raise
 
 
 class CherryPyServer(ServerAdapter):
@@ -2696,7 +2711,7 @@ class CherryPyServer(ServerAdapter):
 class WaitressServer(ServerAdapter):
     def run(self, handler):
         from waitress import serve
-        serve(handler, host=self.host, port=self.port)
+        serve(handler, host=self.host, port=self.port, _quiet=self.quiet)
 
 
 class PasteServer(ServerAdapter):
@@ -3313,29 +3328,52 @@ class StplSyntaxError(TemplateError): pass
 
 class StplParser(object):
     """ Parser for stpl templates. """
-    _re_cache = {} #: Cache for compiled re patterns
+    _re_cache = {}  #: Cache for compiled re patterns
+
     # This huge pile of voodoo magic splits python code into 8 different tokens.
-    # 1: All kinds of python strings (trust me, it works)
-    _re_tok = '((?m)[urbURB]?(?:\'\'(?!\')|""(?!")|\'{6}|"{6}' \
-               '|\'(?:[^\\\\\']|\\\\.)+?\'|"(?:[^\\\\"]|\\\\.)+?"' \
-               '|\'{3}(?:[^\\\\]|\\\\.|\\n)+?\'{3}' \
-               '|"{3}(?:[^\\\\]|\\\\.|\\n)+?"{3}))'
-    _re_inl = _re_tok.replace('|\\n','') # We re-use this string pattern later
-    # 2: Comments (until end of line, but not the newline itself)
-    _re_tok += '|(#.*)'
-    # 3,4: Keywords that start or continue a python block (only start of line)
-    _re_tok += '|^([ \\t]*(?:if|for|while|with|try|def|class)\\b)' \
-               '|^([ \\t]*(?:elif|else|except|finally)\\b)'
-    # 5: Our special 'end' keyword (but only if it stands alone)
-    _re_tok += '|((?:^|;)[ \\t]*end[ \\t]*(?=(?:%(block_close)s[ \\t]*)?\\r?$|;|#))'
-    # 6: A customizable end-of-code-block template token (only end of line)
-    _re_tok += '|(%(block_close)s[ \\t]*(?=$))'
-    # 7: And finally, a single newline. The 8th token is 'everything else'
-    _re_tok += '|(\\r?\\n)'
+    # We use the verbose (?x) regex mode to make this more manageable
+
+    _re_tok = _re_inl = r'''((?mx)         # verbose and dot-matches-newline mode
+        [urbURB]*
+        (?:  ''(?!')
+            |""(?!")
+            |'{6}
+            |"{6}
+            |'(?:[^\\']|\\.)+?'
+            |"(?:[^\\"]|\\.)+?"
+            |'{3}(?:[^\\]|\\.|\n)+?'{3}
+            |"{3}(?:[^\\]|\\.|\n)+?"{3}
+        )
+    )'''
+
+    _re_inl = _re_tok.replace(r'|\n', '')  # We re-use this string pattern later
+
+    _re_tok += r'''
+        # 2: Comments (until end of line, but not the newline itself)
+        |(\#.*)
+
+        # 3: Open and close (4) grouping tokens
+        |([\[\{\(])
+        |([\]\}\)])
+
+        # 5,6: Keywords that start or continue a python block (only start of line)
+        |^([\ \t]*(?:if|for|while|with|try|def|class)\b)
+        |^([\ \t]*(?:elif|else|except|finally)\b)
+
+        # 7: Our special 'end' keyword (but only if it stands alone)
+        |((?:^|;)[\ \t]*end[\ \t]*(?=(?:%(block_close)s[\ \t]*)?\r?$|;|\#))
+
+        # 8: A customizable end-of-code-block template token (only end of line)
+        |(%(block_close)s[\ \t]*(?=\r?$))
+
+        # 9: And finally, a single newline. The 10th token is 'everything else'
+        |(\r?\n)
+    '''
+
     # Match the start tokens of code areas in a template
-    _re_split = '(?m)^[ \t]*(\\\\?)((%(line_start)s)|(%(block_start)s))'
+    _re_split = r'''(?m)^[ \t]*(\\?)((%(line_start)s)|(%(block_start)s))'''
     # Match inline statements (may contain python strings)
-    _re_inl = '%%(inline_start)s((?:%s|[^\'"\n]*?)+)%%(inline_end)s' % _re_inl
+    _re_inl = r'''%%(inline_start)s((?:%s|[^'"\n]+?)*?)%%(inline_end)s''' % _re_inl
 
     default_syntax = '<% %> % {{ }}'
 
@@ -3345,6 +3383,7 @@ class StplParser(object):
         self.code_buffer, self.text_buffer = [], []
         self.lineno, self.offset = 1, 0
         self.indent, self.indent_mod = 0, 0
+        self.paren_depth = 0
 
     def get_syntax(self):
         """ Tokens as a space separated string (default: <% %> % {{ }}) """
@@ -3367,36 +3406,37 @@ class StplParser(object):
     def translate(self):
         if self.offset: raise RuntimeError('Parser is a one time instance.')
         while True:
-            m = self.re_split.search(self.source[self.offset:])
+            m = self.re_split.search(self.source, pos=self.offset)
             if m:
-                text = self.source[self.offset:self.offset+m.start()]
+                text = self.source[self.offset:m.start()]
                 self.text_buffer.append(text)
-                self.offset += m.end()
+                self.offset = m.end()
                 if m.group(1): # Escape syntax
                     line, sep, _ = self.source[self.offset:].partition('\n')
-                    self.text_buffer.append(m.group(2)+line+sep)
-                    self.offset += len(line+sep)+1
+                    self.text_buffer.append(self.source[m.start():m.start(1)]+m.group(2)+line+sep)
+                    self.offset += len(line+sep)
                     continue
                 self.flush_text()
-                self.read_code(multiline=bool(m.group(4)))
+                self.offset += self.read_code(self.source[self.offset:], multiline=bool(m.group(4)))
             else: break
         self.text_buffer.append(self.source[self.offset:])
         self.flush_text()
         return ''.join(self.code_buffer)
 
-    def read_code(self, multiline):
+    def read_code(self, pysource, multiline):
         code_line, comment = '', ''
+        offset = 0
         while True:
-            m = self.re_tok.search(self.source[self.offset:])
+            m = self.re_tok.search(pysource, pos=offset)
             if not m:
-                code_line += self.source[self.offset:]
-                self.offset = len(self.source)
+                code_line += pysource[offset:]
+                offset = len(pysource)
                 self.write_code(code_line.strip(), comment)
-                return
-            code_line += self.source[self.offset:self.offset+m.start()]
-            self.offset += m.end()
-            _str, _com, _blk1, _blk2, _end, _cend, _nl = m.groups()
-            if code_line and (_blk1 or _blk2): # a if b else c
+                break
+            code_line += pysource[offset:m.start()]
+            offset = m.end()
+            _str, _com, _po, _pc, _blk1, _blk2, _end, _cend, _nl = m.groups()
+            if self.paren_depth > 0 and (_blk1 or _blk2): # a if b else c
                 code_line += _blk1 or _blk2
                 continue
             if _str:    # Python string
@@ -3405,6 +3445,15 @@ class StplParser(object):
                 comment = _com
                 if multiline and _com.strip().endswith(self._tokens[1]):
                     multiline = False # Allow end-of-block in comments
+            elif _po:  # open parenthesis
+                self.paren_depth += 1
+                code_line += _po
+            elif _pc:  # close parenthesis
+                if self.paren_depth > 0:
+                    # we could check for matching parentheses here, but it's
+                    # easier to leave that to python - just check counts
+                    self.paren_depth -= 1
+                code_line += _pc
             elif _blk1: # Start-block keyword (if/for/while/def/try/...)
                 code_line, self.indent_mod = _blk1, -1
                 self.indent += 1
@@ -3421,6 +3470,8 @@ class StplParser(object):
                 code_line, comment, self.indent_mod = '', '', 0
                 if not multiline:
                     break
+
+        return offset
 
     def flush_text(self):
         text = ''.join(self.text_buffer)

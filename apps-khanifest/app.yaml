@@ -1,4 +1,4 @@
-application: apps-khanifest
+application: apps-khanifest-2014
 version: 1
 runtime: python27
 api_version: 1
