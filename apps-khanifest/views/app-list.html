@@ -185,7 +185,7 @@
                     % for comment in comments:
                     <tr>
                         <td class="col-md-2">{{comment.author.nickname()}}</td>
-                        <td rowspan="2">{{comment.comment}}</td>
+                        <td rowspan="2" class="text-justify">{{comment.comment}}</td>
                     </tr>
                     <tr>
                         <td>{{comment.comment_date.strftime("%d-%m-%Y, %H:%M")}}</td>
