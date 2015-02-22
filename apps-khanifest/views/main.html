@@ -14,9 +14,9 @@
 <div ><p class="lead">Последние 10 заявок:</p></div>
 </div>
 % if apps:
-<table class="table table-hover">
+<table class="table table-hover table-condensed table-bordered">
   <tr>
-  <th>Номер</th><th>Тип</th><th>Источник</th><th>Название</th><th>Дата отправки</th><th>Статус</th><th></th>
+  <th>Номер</th><th>Тип</th><th>Источник</th><th>Название</th><th>Отправлена</th><th>Статус</th><th></th>
   </tr>
   % for app in apps:
   <tr 
@@ -30,9 +30,9 @@
     <td>{{app_types[app.app_type]}}</td>
     <td>{{app.app_origin}}</td>
     <td>{{app.app_title}}</td>
-    <td>{{app.date}}</td>
+    <td>{{app.date.strftime("%d-%m-%Y, %H:%M")}}</td>
     <td>{{ statuses[app.app_status] }}</td>
-	<td><a href="/edit/{{app.key.urlsafe()}}">Редактировать заявку</a> </td>
+	<td><a href="/view/{{app.key.urlsafe()}}">Подробнеe...</a> </td>
 </tr>    
 
   % end

@@ -2,7 +2,6 @@
 % from google.appengine.ext.blobstore import BlobInfo, BlobKey
 % from google.appengine.api import images
 % from datetime import date
-% import base64
 % include('header.html')
 % setdefault('comments', '')
 % setdefault('action', 'add')
@@ -48,7 +47,9 @@
       >{{app_types[app_type]}}</option>
 	  
       % end
-	  </select>      
+	  </select>
+      <label for="timing">Продолжительность выступления (минут)</label>
+      <input class="form-control"  type="text" placeholder="5.555" name="timing" id="timing" value="{{app.timing if action == "edit" else ''}}">
 	  </div>    
       
 	  <div class="form-group col-md-2">

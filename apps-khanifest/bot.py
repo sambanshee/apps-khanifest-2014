@@ -60,6 +60,7 @@ class Application(ndb.Model):
     number = ndb.IntegerProperty(required=True)  
     test_blob = ndb.StringProperty(repeated=True)
     rehersals = ndb.StringProperty(repeated=True, indexed=False, required=False)
+    timing = ndb.StringProperty(required=True, indexed=False)  
     
     
 @app.route('/')
@@ -72,8 +73,11 @@ def main_page():
         redirect(users.create_login_url(request.url))
     else:
         users.create_logout_url(request.url)
-
-    application_query = Application.query(Application.author == user).order(+Application.number) 
+    
+    if users.is_current_user_admin:
+        application_query = Application.query().order(+Application.number) 
+    else:
+        application_query = Application.query(Application.author == user).order(+Application.number) 
     applications = application_query.fetch()
     
     output = template('main.html', apps = applications, app_types=app_types, statuses=statuses, upload_url = blobstore.create_upload_url('/upload'))
@@ -108,6 +112,7 @@ def new_app():
     application.app_title = request.forms.get('app_title')
     application.app_origin = request.forms.get('app_origin')
     application.city = request.forms.get('city')
+    application.timing = request.forms.get('timing')
     application.app_status = "sent"
     application.author = users.get_current_user()
     
@@ -150,7 +155,103 @@ def new_app():
     redirect("/")
 
 
-#not going to work, just adding stuff
+@app.route('/view/<url_id>')    
+def view_application(url_id):
+    user = users.get_current_user()
+    if not user:
+        redirect(users.create_login_url(request.url))
+
+    application = ndb.Key(urlsafe=url_id).get()
+    if (application.author != user) and (not users.is_current_user_admin()):
+        redirect('/')              
+
+    try:
+      comments = Comments.query(Comments.application == url_id).order(+Comments.comment_date).fetch()
+    except:
+      comments = ""        
+    
+    upload_url = blobstore.create_upload_url('/fileadd')
+    
+    output = template('app-list.html', app = application, action="view", comments=comments, upload_url=upload_url, url_id=url_id, app_types=app_types, statuses=statuses )
+    
+    response.headers['Content-Type'] = 'text/html; charset=utf-8'
+    return output
+
+@app.route('/fileadd', method='POST')    
+def file_add():    
+    user = users.get_current_user()
+    if not user:
+        redirect(users.create_login_url(request.url))
+    response.headers['Content-Type'] = 'text/html; charset=utf-8'    
+    url_id = request.forms.get('url_id')
+    application = ndb.Key(urlsafe=url_id).get()
+    if application.author != user and not users.is_current_user_admin() :
+        redirect('/')
+    try:
+        upload = request.files["upload"]
+        blob_data = parse_options_header(upload.content_type)[1]
+        blob_key =  blob_data["blob-key"]
+        if application.test_blob:
+            application.test_blob.append(blob_key)
+        else:
+            application.test_blob = [blob_key]
+        application.put()
+    except:
+        pass
+    redirect('/view/%s' % url_id)
+       
+@app.route('/ytadd', method='POST')
+def youtube_add():
+    user = users.get_current_user()
+    if not user:
+        redirect(users.create_login_url(request.url))
+    response.headers['Content-Type'] = 'text/html; charset=utf-8'    
+    url_id = request.forms.get('url_id')
+    application = ndb.Key(urlsafe=url_id).get()
+    if application.author != user and not users.is_current_user_admin() :
+        redirect('/')
+        
+    try:
+        rehersal = request.forms.get('rehersal')
+    except:
+        rehersal = None    
+        
+    if rehersal:
+        match = re.search(r"(?:youtube\.com\/\S*(?:(?:\/e(?:mbed))?\/|watch\?(?:\S*?&?v\=))|youtu\.be\/)([a-zA-Z0-9_-]{6,11})", rehersal)
+        if match:
+            rehersal = match.group(1)
+            
+    if application.rehersals and rehersal:
+        application.rehersals.append(rehersal)
+        application.put()
+    elif rehersal and not application.rehersals:
+        application.rehersals = [rehersal]
+        application.put()
+        
+    redirect('/view/%s' % url_id)
+
+@app.route('/commentadd', method='POST')    
+def comment_add():
+    user = users.get_current_user()
+    if not user:
+        redirect(users.create_login_url(request.url))
+    response.headers['Content-Type'] = 'text/html; charset=utf-8'    
+    url_id = request.forms.get('url_id')
+    application = ndb.Key(urlsafe=url_id).get()
+    if application.author != user and not users.is_current_user_admin() :
+        redirect('/')
+
+    comment = Comments(parent=comments_key)
+    comment_body = request.forms.get('comment')
+    if comment_body:
+        comment.comment = comment_body
+        comment.author = user
+        comment.application = url_id
+        comment.put()       
+        
+    redirect('/view/%s' % url_id)
+
+        
 @app.route('/edit/<url_id>')
 def edit_post(url_id):
     user = users.get_current_user()
@@ -208,6 +309,7 @@ def edit_post():
     application.app_title = decode_field(request.forms.get('app_title'))
     application.app_origin = decode_field(request.forms.get('app_origin'))
     application.city = decode_field(request.forms.get('city'))
+    application.timing = request.forms.get('timing')
     #application.app_status = "sent"
     #return application.app_title
     
@@ -245,7 +347,7 @@ def edit_post():
       nickname = request.forms.get("participant_nickname_%d" % i)
       age = request.forms.get("participant_age_%d" % i)
       fullname = decode_field(fullname)
-      nicname = decode_field(nickname)
+      nickname = decode_field(nickname)
       delete = request.forms.get("participant_delete_%d" % i)
       #participants_list.append([fullname, nickname, age, "participant_fn_%d" % i])
       if fullname and nickname and age and not delete:

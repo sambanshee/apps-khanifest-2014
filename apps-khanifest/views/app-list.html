@@ -1,0 +1,217 @@
+% from google.appengine.api import users
+% from google.appengine.ext.blobstore import BlobInfo, BlobKey
+% from google.appengine.api import images
+% from datetime import date
+% include('header.html')
+% setdefault('comments', '')
+% setdefault('action', 'add')
+% setdefault('app_types', [])
+% setdefault('app', {})
+% setdefault('url_id', '')
+% setdefault('upload_url', '/add')
+% setdefault('image_types', ['image/gif', 'image/jpeg', 'image/png', ])
+% setdefault('test_blob', None)
+
+<div class="container-fluid">
+
+<div class="row">
+    <div class="col-md-12">
+    <table class="table table-condensed table-hover table-bordered">
+        <tr>
+            <th>Заявка</th>
+            <th>Тип</th>
+            <th>Город</th>
+            <th>Название</th>
+            <th>Источник</th>
+            <th>Длительность</th>
+            <th>Отправлена</th>
+            <th>Автор</th>
+            <th>Почта</th>
+            <th>Телефон</th>
+            <th>Контакты</th>
+            <th>Участ.</th>
+            <th>Статус</th>
+            <th></th>
+        </tr>
+        <tr>
+            <td>{{app.number}}</td>
+            <td>{{app_types[app.app_type]}}</td>
+            <td>{{app.city}}</td>
+            <td>{{app.app_title}}</td>
+            <td>{{app.app_origin}}</td>
+            <td>{{app.timing}}</td>
+            <td>{{app.date.strftime("%d-%m-%Y, %H:%M")}}</td>
+            <td>{{app.author_fn}}, {{app.author_bdate.strftime("%Y")}} г.р.</td>
+            <td>{{app.author_mail}}</td>
+            <td>{{app.author_phone}}</td>
+            <td>{{app.author_contacts}}</td>
+            <td>{{len(app.participants)}}</td>
+            <td>{{statuses[app.app_status]}}</td>
+            <td class="text-center"><a class="btn btn-default btn-xs" href="/edit/{{url_id}}" role="button">Редактировать заявку</a></td>
+            
+        </tr>
+        
+    </table>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-4">
+    <table class="table table-condensed table-hover table-bordered">
+        <tr>
+            <th>Имя</th>
+            <th>Ник</th>
+            <th>Возраст</th>
+        </tr>
+        %for participant in app.participants:
+        <tr>
+            <td>{{participant.participant_fn}}</td>
+            <td>{{participant.participant_nickname}}</td>
+            <td>{{participant.participant_age}}</td>
+        </tr>
+        %end
+        <tr>
+            <td colspan="2" class="text-right"><strong>Всего участников:</strong></td>
+            <td>{{len(app.participants)}}</td>
+        </tr>
+    </table>
+    </div>
+
+
+    <div class="col-md-8">
+        <div class="panel panel-default">
+        <div class="panel-heading">Описание заявки</div>
+        <div class="panel-body text-justify">{{app.content}}</div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+<div class="col-md-6">
+    <div class="row">
+    <!-- Картинки -->
+    % blob_images = []
+    % blob_files = []
+    % for blob_key in app.test_blob:
+        % blob = BlobInfo.get(blob_key)
+        % if blob.content_type in image_types:
+            %   blob_images.append(blob)
+        % else:
+            %   blob_files.append(blob)
+        % end
+    % end
+    <div class="col-xs-12">
+        <div class="panel panel-default">
+            <div class="panel-heading"><i class="fa fa-file-image-o"></i> Фотографии:</div>
+            <div class="panel-body">
+                % for blob in blob_images:
+                    <a href="{{images.get_serving_url(blob.key(), size=1600, crop=False)}}" target="_blank"><img src="{{images.get_serving_url(blob.key())}}=s250-c" class="img-rounded"/></a>
+                % end
+            </div>
+            <div class="panel-footer">
+                <form action="{{upload_url}}" method="post" role="form" enctype="multipart/form-data" accept-charset="utf-8" class="form-inline">
+                    <div class="form-group" id="uploads">
+                        <label for="upload">Загрузить файл</label>
+                        <input type="file" name="upload" id="upload1" />
+                        <input type="hidden" name="url_id" value="{{url_id}}" id="{{url_id}}">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-sm" id="submit" name="submit">Добавить</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    </div>
+
+    <div class="row">
+
+    <!--Прочие файлы-->
+    <div class="col-xs-12">
+        <div class="panel panel-default">
+            <div class="panel-heading"><i class="fa fa-file"></i> Прочие файлы:</div>
+            <div class="panel-body">
+                <ul class="list-inline">
+                    % for blob in blob_files:
+                        <li><a href = "/download/{{blob.key()}}">{{blob.filename}}</a></li>
+                    % end
+                </ul>
+            </div>
+            <div class="panel-footer">
+                <form action="{{upload_url}}" method="post" role="form" enctype="multipart/form-data" accept-charset="utf-8" class="form-inline">
+                    <div class="form-group" id="uploads">
+                        <label for="upload">Загрузить файл</label>
+                        <input type="file" name="upload" id="upload2" />
+                        <input type="hidden" name="url_id" value="{{url_id}}" id="{{url_id}}">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-sm" id="submit" name="submit">Добавить</button>
+                </form>
+            </div>
+        </div>
+
+    </div>
+
+    </div>
+
+        <div class="row">
+        <div class="col-xs-12">
+
+            <div class="panel panel-default">
+            <div class="panel-heading"><i class="fa fa-video-camera"></i> Репетиции (YouTube):</div>
+            <div class="panel-body">
+                %for rehersal in app.rehersals:
+                    <iframe class="embed-responsive-item" width="320" height="240" src="https://www.youtube.com/embed/{{rehersal}}" frameborder="0"></iframe>
+                %end
+            </div>
+            <div class="panel-footer">
+                <form action="/ytadd" method="post" role="form" accept-charset="utf-8" class="form-inline">
+                    <div class="form-group" id="rehersals">
+                        <label for="rehersal">Видео репетиций (YouTube)</label>
+                        <input class="form-control input-sm" type="text" name="rehersal" id="rehersal" placeholder="https://www.youtube.com/watch?v=dQw4w9WgXcQ" />
+                        <input type="hidden" name="url_id" value="{{url_id}}" id="{{url_id}}">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-sm" id="submit" name="submit">Добавить</button>
+                </form>            
+            </div>
+        </div>
+        </div>
+        </div>
+
+</div>
+
+<div class="col-md-6">
+    <div class="row">    
+        <div class="col-xs-12">
+            <div class="panel panel-default">
+            <div class="panel-heading"><i class="fa fa-comments"></i> Комментарии:</div>
+                <table class="table table-bordered table-hover">
+                    % for comment in comments:
+                    <tr>
+                        <td class="col-md-2">{{comment.author.nickname()}}</td>
+                        <td rowspan="2">{{comment.comment}}</td>
+                    </tr>
+                    <tr>
+                        <td>{{comment.comment_date.strftime("%d-%m-%Y, %H:%M")}}</td>
+                    </tr>
+                    % end
+                    <tr>
+                        <td colspan="2">
+                            <form action="/commentadd" method="post" role="form" accept-charset="utf-8" >
+                                <div class="form-group" id="comments">
+                                    <label for="comment">Добавить комментарий</label>
+                                    <textarea class="form-control input-sm" type="text" name="comment" id="comment" placeholder="Хотелось бы добавить, что слоны розовые." rows="3"></textarea>
+                                    <input type="hidden" name="url_id" value="{{url_id}}" id="{{url_id}}">
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-sm" id="submit" name="submit">Добавить</button>
+                            </form>    
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+
+</div>
+
+</div>
+    
+</div>
