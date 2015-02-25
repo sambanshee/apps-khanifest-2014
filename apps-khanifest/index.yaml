@@ -12,7 +12,34 @@ indexes:
 
 - kind: Application
   properties:
+  - name: app_status
+  - name: number
+
+- kind: Application
+  properties:
+  - name: app_type
+  - name: author_mail
+  - name: city
+  - name: number
+
+- kind: Application
+  properties:
+  - name: app_type
+  - name: number
+
+- kind: Application
+  properties:
   - name: author
+  - name: number
+
+- kind: Application
+  properties:
+  - name: author_mail
+  - name: number
+
+- kind: Application
+  properties:
+  - name: city
   - name: number
 
 - kind: Comments

@@ -39,7 +39,7 @@
       <input class="form-control"  type="text" placeholder="Звездные Войны 7" name="app_origin" id="app_origin" value="{{app.app_origin if action == "edit" else ''}}">
       <label for="app_type">Тип заявки</label>
 	  <select class="form-control" name="app_type" id="app_type">
-      % for app_type in app_types:
+      % for app_type in sorted(app_types):
 	  <option value="{{app_type}}"
       % if action == 'edit':
       {{ "selected" if app_type == app.app_type else ""}}

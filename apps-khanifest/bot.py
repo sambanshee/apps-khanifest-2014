@@ -27,6 +27,7 @@ comments_key = ndb.Key('Comments', 'comments')
 app_types = {"play":"Сценка", "group":"Групповое дефиле", "karaoke":"Караоке", "defile":"Дефиле", "other":"Другое" }
 counter_id = 1
 statuses={"sent":"Отправлена", "hold": "Ожидает ответа", "wait": "В рассмотрении", "deny": "Отклонена", "accept": "Принята"}
+default_fields = ["app_number", "app_type", "city", "app_title", "app_origin", "app_timing", "author_fn", "author_mail", "author_phone", "author_contacts", "participants_num", "app_status"]
 
 class Counter(ndb.Model):
     counter = ndb.IntegerProperty(default=1)
@@ -185,7 +186,7 @@ def file_add():
     response.headers['Content-Type'] = 'text/html; charset=utf-8'    
     url_id = request.forms.get('url_id')
     application = ndb.Key(urlsafe=url_id).get()
-    if application.author != user and not users.is_current_user_admin() :
+    if application.author != user and not users.is_current_user_admin():
         redirect('/')
     try:
         upload = request.files["upload"]
@@ -251,6 +252,39 @@ def comment_add():
         
     redirect('/view/%s' % url_id)
 
+@app.route('/list-apps/<sort_field>')       
+def list_apps(sort_field):
+    user = users.get_current_user()
+    if not user:
+        redirect(users.create_login_url(request.url))
+    elif not users.is_current_user_admin():
+        redirect('/')
+    
+    query = Application.query()
+    
+    
+    for field in default_fields:
+        field_value = request.query.get(field)
+        if field_value:
+            if field == "app_number":
+                query = query.filter(Application.number == int(field_value)) 
+            elif field == "app_type" and field_value != "all":
+                query = query.filter(Application.app_type == field_value)
+            elif field == "city":
+                query = query.filter(Application.city == field_value)
+            elif field == "author_mail":
+                query = query.filter(Application.author_mail == field_value)
+            elif field == "app_status" and field_value !="all":
+                query = query.filter(Application.app_status == field_value)
+    
+    
+    application_query = query.order(+Application.number)
+    applications = application_query.fetch()
+    
+    output = template('admin.html', apps = applications, app_types=app_types, statuses=statuses, )
+    
+    return output    
+    
         
 @app.route('/edit/<url_id>')
 def edit_post(url_id):

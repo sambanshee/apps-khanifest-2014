@@ -1,0 +1,118 @@
+% from google.appengine.api import users
+% from google.appengine.ext.blobstore import BlobInfo, BlobKey
+% from google.appengine.api import images
+% from datetime import date
+% include('header.html')
+% setdefault('comments', '')
+% setdefault('action', 'add')
+% setdefault('app_types', [])
+% setdefault('app', {})
+% setdefault('url_id', '')
+% setdefault('upload_url', '/add')
+% setdefault('image_types', ['image/gif', 'image/jpeg', 'image/png', ])
+% setdefault('test_blob', None)
+
+<div class="container-fluid">
+
+<div class="row">
+    <div class="col-md-12">
+    <table class="table table-condensed table-hover table-bordered">
+        <tr>
+            <th>Заявка</th>
+            <th>Тип</th>
+            <th>Город</th>
+            <th>Название</th>
+            <th>Источник</th>
+            <th>Длительность</th>
+            <th>Отправлена</th>
+            <th>Автор</th>
+            <th>Почта</th>
+            <th>Телефон</th>
+            <th>Контакты</th>
+            <th>Участ.</th>
+            <th>Статус</th>
+            <th></th>
+        </tr>
+            <form action="/list-apps" method="get" role="form" accept-charset="utf-8">
+                <td>
+                    <input class="form-control input-sm" type="number" name="app_number" id="app_number" placeholder="Номер заявки" />                    
+                </td>
+                <td>
+                    <select class="form-control input-sm" name="app_type" id="app_type">
+                        <option value="all">Все</option> 
+                        % for app_type in sorted(app_types):
+                            <option value="{{app_type}}">{{app_types[app_type]}}</option>  
+                        % end
+                    </select>                   
+                </td>
+                <td>
+                    <input class="form-control input-sm" type="text" name="city" id="city" placeholder="Город" />                    
+                </td>
+                <td>
+
+                </td>
+                <td>
+
+                </td>
+                <td>
+                    <!-- <input class="form-control input-sm" type="text" name="timing" id="timing" placeholder="Минут" /> -->
+                </td>
+                <td>
+                    
+                </td>
+                <td>
+                    <!-- <input class="form-control input-sm" type="text" name="author_fn" id="author_fn" placeholder="Имя..." /> -->
+                </td>
+                <td>
+                    <input class="form-control input-sm" type="text" name="author_mail" id="author_mail" placeholder="" />
+                </td>
+                <td>
+                    
+                </td>
+                <td>
+                    
+                </td>
+                <td>
+                    
+                </td>
+                <td>
+                    <select class="form-control input-sm" name="app_status" id="app_status">
+                        <option value="all">Все</option> 
+                        % for app_status in sorted(statuses):
+                            <option value="{{app_status}}">{{statuses[app_status]}}</option>  
+                        % end
+                    </select>    
+                </td>
+                <td>
+                    <button type="submit" class="btn btn-primary btn-sm" id="submit" name="submit">Фильтровать</button>
+                </td>
+                
+            </form>
+        <tr>
+        </tr>
+        
+        % for app in apps:
+            <tr>
+                <td>{{app.number}}</td>
+                <td>{{app_types[app.app_type]}}</td>
+                <td>{{app.city}}</td>
+                <td>{{app.app_title}}</td>
+                <td>{{app.app_origin}}</td>
+                <td>{{app.timing}}</td>
+                <td>{{app.date.strftime("%d-%m-%Y, %H:%M")}}</td>
+                <td>{{app.author_fn}}, {{app.author_bdate.strftime("%Y")}} г.р.</td>
+                <td>{{app.author_mail}}</td>
+                <td>{{app.author_phone}}</td>
+                <td>{{app.author_contacts}}</td>
+                <td>{{len(app.participants)}}</td>
+                <td>{{statuses[app.app_status]}}</td>
+                <td class="text-center"><a class="btn btn-default btn-xs" href="/edit/{{url_id}}" role="button">Редактировать заявку</a></td>
+                
+            </tr>
+        %end
+        
+    </table>
+    </div>
+</div>
+
+</div>
