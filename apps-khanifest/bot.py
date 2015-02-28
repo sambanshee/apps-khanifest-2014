@@ -13,7 +13,7 @@ import re
 
 def decode_field(field):
     try:
-        return base64.b64decode(str(field).decode('utf-8'))
+        return base64.b64decode(str(field))
     except:
         #return field.decode('utf-8')
         return field
