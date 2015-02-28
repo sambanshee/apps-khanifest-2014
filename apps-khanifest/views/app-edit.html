@@ -11,7 +11,8 @@
 % setdefault('upload_url', '/add')
 % setdefault('image_types', ['image/gif', 'image/jpeg', 'image/png', ])
 % setdefault('test_blob', None)
-
+% user = users.get_current_user()
+% setdefault('return_page', '')
 
 % if action == "edit":
     <div class="container-fluid">
@@ -28,7 +29,7 @@
 
 <div class="row col-md-offset-1 col-lg-offset-1 col-md-10 col-lg-10">
     
-    <form action="{{upload_url}}" method="post" role="form" enctype="multipart/form-data" accept-charset="utf-8">
+    <form action="{{upload_url}}?return_page={{return_page}}" method="post" role="form" enctype="multipart/form-data" accept-charset="utf-8">
       
       <div class="form-group col-md-4">
       <label for="app_title">Название заявки</label>
@@ -50,6 +51,19 @@
 	  </select>
       <label for="timing">Продолжительность выступления (минут)</label>
       <input class="form-control"  type="text" placeholder="5.555" name="timing" id="timing" value="{{app.timing if action == "edit" else ''}}">
+      
+      % if user and users.is_current_user_admin():
+          <label for="app_status    ">Статус</label>
+          <select class="form-control" name="app_status" id="app_ststus">
+              % for status in sorted(statuses):
+                  <option value="{{status}}"
+                  % if action == 'edit':
+                  {{ "selected" if status == app.app_status else ""}}
+                  % end
+                  >{{statuses[status]}}</option>              
+              % end
+          </select>
+      % end
 	  </div>    
       
 	  <div class="form-group col-md-2">

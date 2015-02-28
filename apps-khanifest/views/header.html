@@ -31,4 +31,49 @@
 
     </head>
 
-<body>
+<body style="padding-top: 70px;">
+
+% from google.appengine.api import users
+<nav class="navbar navbar-default navbar-fixed-top navbar-inverse" role="navigation">
+  <div class="container-fluid">
+    <div class="collapse navbar-collapse">
+        <ul class="nav navbar-nav">
+        <li><a href="/">Главная</a></li>
+        <li>
+            
+        </li>
+        
+        
+        <!-- <li><a href="http://sam_banshee.diary.ru/">Diary.ru</a></li>
+        <li><a href="https://twitter.com/sam_banshee">Twitter</a></li> -->
+      </ul>
+      
+            <a href="/add" type="button" class="btn btn-default navbar-btn">Подать заявку!</a>
+            
+      <ul class="nav navbar-nav navbar-right">
+        % user = users.get_current_user()
+        % if user and users.is_current_user_admin():
+            <li>
+                <form action="/list-apps" method="get" accept-charset="utf-8" class="navbar-form navbar-left" role="search">
+                    <div class="form-group">
+                        <input class="form-control input-sm" type="number" name="app_number" id="app_number" placeholder="Номер заявки...">
+                    </div>
+                    <button type="submit" id="submit" name="submit" class="btn btn-default">Искать!</button>
+                </form>
+            </li>
+            <li><a href='/list-apps'>Админка: Все заявки</a></li>
+        % end
+        
+        % if user:
+            % logoff_url = users.create_logout_url('/')
+            <li><a href='{{logoff_url}}'>Выйти</a></li>
+        % else:
+            % login_url =  users.create_login_url('/')
+            <li><a href='{{login_url}}'>Зайти</a></li>
+        % end 
+        
+      </ul>
+      </div>
+    
+  </div>
+</nav>

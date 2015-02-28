@@ -75,10 +75,7 @@ def main_page():
     else:
         users.create_logout_url(request.url)
     
-    if users.is_current_user_admin:
-        application_query = Application.query().order(+Application.number) 
-    else:
-        application_query = Application.query(Application.author == user).order(+Application.number) 
+    application_query = Application.query(Application.author == user).order(+Application.number) 
     applications = application_query.fetch()
     
     output = template('main.html', apps = applications, app_types=app_types, statuses=statuses, upload_url = blobstore.create_upload_url('/upload'))
@@ -252,8 +249,9 @@ def comment_add():
         
     redirect('/view/%s' % url_id)
 
+@app.route('/list-apps')
 @app.route('/list-apps/<sort_field>')       
-def list_apps(sort_field):
+def list_apps(sort_field=None):
     user = users.get_current_user()
     if not user:
         redirect(users.create_login_url(request.url))
@@ -303,9 +301,13 @@ def edit_post(url_id):
     except:
       comments = ""
     
+    return_page = request.query.get("return_page")
+    if not return_page:
+        return_page = ''
+    
     upload_url = blobstore.create_upload_url('/edit')
     
-    output = template('app-edit.html', app = application[0], action="edit", comments=comments, url_id=url_id, upload_url=upload_url, app_types=app_types, statuses=statuses )
+    output = template('app-edit.html', app = application[0], action="edit", comments=comments, url_id=url_id, upload_url=upload_url, app_types=app_types, statuses=statuses, return_page=return_page )
     
     response.headers['Content-Type'] = 'text/html; charset=utf-8'
     return output
@@ -344,7 +346,8 @@ def edit_post():
     application.app_origin = decode_field(request.forms.get('app_origin'))
     application.city = decode_field(request.forms.get('city'))
     application.timing = request.forms.get('timing')
-    #application.app_status = "sent"
+    if users.is_current_user_admin():
+        application.app_status = request.forms.get('app_status')
     #return application.app_title
     
     try:
@@ -408,7 +411,15 @@ def edit_post():
 
     #return "success"
     #return application
-    redirect('/')  
+    
+    referer = request.headers.get('Referer')
+    return_page = request.query.get('return_page')
+    if return_page:
+        redirect('/%s' % return_page)
+    elif referer:
+        redirect(referer)
+    else:
+        redirect('/')  
 
 # http://java.dzone.com/articles/upload-and-download-file-mongo
 @app.route('/download/<blob_key>')
