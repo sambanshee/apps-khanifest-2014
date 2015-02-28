@@ -22,14 +22,14 @@
             <th>Тип</th>
             <th>Город</th>
             <th>Название</th>
-            <th>Источник</th>
-            <th>Длительность</th>
+            <th class="hidden-xs hidden-sm hidden-md ">Источник</th>
+            <th class="hidden-xs hidden-sm hidden-md">Длит.<small>(мин)</small></th>
             <th>Отправлена</th>
             <th>Автор</th>
             <th>Почта</th>
             <th>Телефон</th>
-            <th>Контакты</th>
-            <th>Участ.</th>
+            <th class="hidden-xs hidden-sm">Контакты</th>
+            <th class="hidden-xs hidden-sm hidden-md ">Участ.</th>
             <th>Статус</th>
             <th></th>
         </tr>
@@ -51,10 +51,10 @@
                 <td>
 
                 </td>
-                <td>
+                <td class="hidden-xs hidden-sm hidden-md ">
 
                 </td>
-                <td>
+                <td class="hidden-xs hidden-sm hidden-md">
                     <!-- <input class="form-control input-sm" type="text" name="timing" id="timing" placeholder="Минут" /> -->
                 </td>
                 <td>
@@ -69,10 +69,10 @@
                 <td>
                     
                 </td>
-                <td>
+                <td class="hidden-xs hidden-sm">
                     
                 </td>
-                <td>
+                <td class="hidden-xs hidden-sm hidden-md ">
                     
                 </td>
                 <td>
@@ -104,21 +104,44 @@
             % end
             >
             
-                <td><a href="/view/{{app.key.urlsafe()}}">{{app.number}}</a></td>
-                <td><a href="/view/{{app.key.urlsafe()}}">{{app_types[app.app_type]}}</a></td>
-                <td><a href="/view/{{app.key.urlsafe()}}">{{app.city}}</a></td>
-                <td><a href="/view/{{app.key.urlsafe()}}">{{app.app_title}}</a></td>
-                <td><a href="/view/{{app.key.urlsafe()}}">{{app.app_origin}}</a></td>
-                <td><a href="/view/{{app.key.urlsafe()}}">{{app.timing}}</a></td>
-                <td><a href="/view/{{app.key.urlsafe()}}">{{app.date.strftime("%d-%m-%Y, %H:%M")}}</a></td>
-                <td><a href="/view/{{app.key.urlsafe()}}">{{app.author_fn}}, {{app.author_bdate.strftime("%Y")}} г.р.</a></td>
-                <td><a href="/view/{{app.key.urlsafe()}}">{{app.author_mail}}</a></td>
-                <td><a href="/view/{{app.key.urlsafe()}}">{{app.author_phone}}</a></td>
-                <td><a href="/view/{{app.key.urlsafe()}}">{{app.author_contacts}}</a></td>
-                <td><a href="/view/{{app.key.urlsafe()}}">{{len(app.participants)}}</a></td>
-                <td><a href="/view/{{app.key.urlsafe()}}">{{statuses[app.app_status]}}</a></td>
+                <td><a href="/view/{{app.key.urlsafe()}}"><span class="hidden-xs hidden-sm hidden-md">{{app.number}}</span><small class="hidden-lg">{{app.number}}</small></a></td>
+                <td><a href="/view/{{app.key.urlsafe()}}">
+                    <span class="hidden-xs hidden-sm hidden-md">{{app_types[app.app_type]}}</span><small class="hidden-lg">{{app_types[app.app_type]}}</small>
+                </a></td>
+                <td><a href="/view/{{app.key.urlsafe()}}">
+                    <span class="hidden-xs hidden-sm hidden-md">{{app.city}}</span><small class="hidden-lg">{{app.city}}</small>
+                </a></td>
+                <td><a href="/view/{{app.key.urlsafe()}}">
+                    <span class="hidden-xs hidden-sm hidden-md">{{app.app_title}}</span><small class="hidden-lg">{{app.app_title}}</small>
+                </a></td>
+                <td class="hidden-xs hidden-sm hidden-md "><a href="/view/{{app.key.urlsafe()}}">
+                    {{app.app_origin}}
+                </a></td>
+                <td class="hidden-xs hidden-sm hidden-md"><a href="/view/{{app.key.urlsafe()}}">
+                    {{app.timing}}
+                </a></td>
+                <td><a href="/view/{{app.key.urlsafe()}}">
+                    <span class="hidden-xs hidden-sm hidden-md">{{app.date.strftime("%d-%m-%Y, %H:%M")}}</span><small class="hidden-lg">{{app.date.strftime("%d-%m-%Y")}}</small>
+                </a></td>
+                <td><a href="/view/{{app.key.urlsafe()}}"><span class="hidden-xs hidden-sm hidden-md">
+                    {{app.author_fn}}, {{app.author_bdate.strftime("%Y")}} г.р. </span><small class="hidden-lg">{{app.author_fn}}</small>
+                </a></td>
+                <td><a href="/view/{{app.key.urlsafe()}}">
+                    <span class="hidden-xs hidden-sm hidden-md">{{app.author_mail}}</span><small class="hidden-lg">{{app.author_mail}}</small>
+                </a></td>
+                <td><a href="/view/{{app.key.urlsafe()}}">
+                    <span class="hidden-xs hidden-sm hidden-md">{{app.author_phone}}</span><small class="hidden-lg">{{app.author_phone}}</small>
+                </a></td>
+                <td class="hidden-xs hidden-sm"><a href="/view/{{app.key.urlsafe()}}">
+                    <span class="hidden-xs hidden-sm hidden-md">{{app.author_contacts}}</span><small class="hidden-lg">{{app.author_contacts}}</small>
+                </a></td>
+                <td class="hidden-xs hidden-sm hidden-md "><a href="/view/{{app.key.urlsafe()}}">
+                    {{len(app.participants)}}
+                </a></td>
+                <td><a href="/view/{{app.key.urlsafe()}}">
+                    <span class="hidden-xs hidden-sm hidden-md">{{statuses[app.app_status]}}</span><small class="hidden-lg">{{statuses[app.app_status]}}</small></a></td>
                 <td class="text-center">
-                <a class="btn btn-default btn-xs" href="/edit/{{app.key.urlsafe()}}" role="button">Редактировать заявку</a>
+                <a class="btn btn-default btn-xs" href="/edit/{{app.key.urlsafe()}}" role="button">Редактировать</a>
                 </td>
                 
             </tr>

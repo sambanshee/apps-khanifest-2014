@@ -82,34 +82,36 @@
       <label for="city">Город</label>
 	  <input class="form-control" type="text" placeholder="Жмеринка, Ахтырка" name="city" id="city" value="{{app.city if action=="edit" else ''}}">
 
+      <!-- -->
+      </div>
       
-      </div>
+      <!-- -->
       <div class="form-group col-md-6" id="participants">
-      <div class="form-group col-md-12">
-      <label class="control-label col-md-12">Участники<br/><small><i class="fa fa-info-circle"> </i> дополнительных участников можно добавить, отредактировав заявку</label>
-      </div>
+      
+      <h4>Участники<br/><small><i class="fa fa-info-circle"> </i> дополнительных участников можно добавить, отредактировав заявку</h4>
+      
       
       
       
       % participant_id = 0
       % if action=="edit":
       % for participant in app.participants:
-      <div class="col-md-12  col-xs-12" id="participants_names_{{participant_id}}" >
-      <div class="form-group col-xs-10 col-md-4" id="participants_fn_{{participant_id}}">
+      <div class="row" id="participants_names_{{participant_id}}" >
+      <div class="form-group col-md-4" id="participants_fn_{{participant_id}}">
       <label for="participant_fn_{{participant_id}}"><small>ФИО</small></label>
-      <input class="form-control input-sm" type="text" placeholder="Петя Васечкин" name="participant_fn_{{participant_id}}" id="participant_fn_{{participant_id}}" value="{{participant.participant_fn}}" />
+      <input class="form-control input-sm" type="text" name="participant_fn_{{participant_id}}" id="participant_fn_{{participant_id}}" value="{{participant.participant_fn}}" >
       </div>
-      <div class="col-md-4 col-xs-10 " id="participants_nickname_{{participant_id}}">
+      <div class="col-md-4" id="participants_nickname_{{participant_id}}">
       <label for="participant_nickname_{{participant_id}}"><small>Псевдоним</small></label>
-      <input class="form-control input-sm" type="text" placeholder="Шынжы" name="participant_nickname_{{participant_id}}" id="participant_nickname_{{participant_id}}" value="{{participant.participant_nickname}}" />
+      <input class="form-control input-sm" type="text" name="participant_nickname_{{participant_id}}" id="participant_nickname_{{participant_id}}" value="{{participant.participant_nickname}}" >
       </div>
-      <div class="col-md-2 col-xs-10 " id="participants_age_{{participant_id}}">
+      <div class="col-md-2" id="participants_age_{{participant_id}}">
       <label for="participant_age_{{participant_id}}"><small>Возраст</small></label>
-      <input class="form-control input-sm" type="text" placeholder="9000" name="participant_age_{{participant_id}}" id="participant_age_{{participant_id}}" value="{{participant.participant_age}}" />
+      <input class="form-control input-sm" type="text" name="participant_age_{{participant_id}}" id="participant_age_{{participant_id}}" value="{{participant.participant_age}}" >
       </div>
-      <div class="col-md-2 col-xs-2 " id="participants_delete_{{participant_id}}">
+      <div class="col-md-2" id="participants_delete_{{participant_id}}">
       <label for="participant_delete_{{participant_id}}">Удалить?</label>
-      <input class="form-control input-sm " type="checkbox" name="participant_delete_{{participant_id}}" id="participant_delete_{{participant_id}}" /> 
+      <input class="form-control input-sm " type="checkbox" name="participant_delete_{{participant_id}}" id="participant_delete_{{participant_id}}" > 
       </div>
       </div>
       % participant_id += 1
@@ -118,7 +120,7 @@
       
       % new_range = participant_id
       % for participant_id in range(participant_id, participant_id + 5):
-      <div class="col-md-12" id="participants_names_{{participant_id}}" >
+      <div class="row" id="participants_names_new_{{participant_id}}" >
       <div class="form-group col-md-5" id="participants_fn_{{participant_id}}">
       <label for="participant_fn_{{participant_id}}"><small>ФИО</small></label>
       <input class="form-control input-sm" type="text" placeholder="Петя Васечкин" name="participant_fn_{{participant_id}}" id="participant_fn_{{participant_id}}" >
@@ -133,6 +135,7 @@
       </div>
       </div>
       % end
+      
       </div>
       
       % if action=="edit":
